@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { supabase } from '../supabaseClient'; // Pastikan path file ini bener sesuai letaknya
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -23,10 +24,46 @@ export default function LandingPage() {
     }
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (name && address) {
-      localStorage.setItem('userName', name);
-      navigate('/dashboard');
+      try {
+        // 1. Cek apakah wallet sudah terdaftar di database
+        const { data: user, error } = await supabase
+          .from('users')
+          .select('user_name')
+          .eq('wallet_address', address)
+          .single();
+
+        if (user) {
+          // 2. CEK VALIDASI NAMA (Logika "Anti-Bambang")
+          // Kita bandingkan nama yang diketik (name) dengan yang ada di DB (user.user_name)
+          if (name.trim().toLowerCase() !== user.user_name.trim().toLowerCase()) {
+            alert(`Login Gagal! Wallet ini sudah terdaftar dengan nama lain. Silakan masukkan nama yang sesuai.`);
+            return; // Berhenti di sini, gak boleh lanjut ke dashboard
+          }
+
+          // Kalau namanya bener, baru boleh masuk
+          localStorage.setItem('userName', user.user_name);
+          localStorage.setItem('userAddress', address);
+          alert(`Welcome back, ${user.user_name}!`);
+          navigate('/dashboard');
+        } else {
+          // 3. Kalau wallet benar-benar baru, simpan sebagai user baru
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert([{ wallet_address: address, user_name: name }]);
+
+          if (insertError) throw insertError;
+
+          localStorage.setItem('userName', name);
+          localStorage.setItem('userAddress', address);
+          alert("Registration successful!");
+          navigate('/dashboard');
+        }
+      } catch (error) {
+        console.error("Supabase Error:", error);
+        alert("Terjadi kesalahan koneksi ke database.");
+      }
     } else {
       alert("Please enter your name and connect your wallet first!");
     }
@@ -85,7 +122,7 @@ export default function LandingPage() {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-
+ 
   z-index: 1;
   opacity: 0.15;
   pointer-events: none;
