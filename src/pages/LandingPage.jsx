@@ -76,19 +76,22 @@ export default function LandingPage() {
         }
 
         .bg-logo {
-          position: fixed;
-          width: 900px;
-          height: auto;
-          top: -10%;
-          left: 15%;
-          transform: translate(-50%, -50%);
-          z-index: 1;
-          opacity: 0.15;
-          pointer-events: none;
-          filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.4));
-          object-fit: contain;
-        }
+  position: fixed;
+  /* Lebarnya responsif: 80% layar di HP, tapi maksimal 800px di layar gede */
+  width: min(800px, 80vw); 
+  height: auto;
 
+  /* RUMUS SAKTI CENTER */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  z-index: 1;
+  opacity: 0.15;
+  pointer-events: none;
+  filter: drop-shadow(0 0 40px rgba(168, 85, 247, 0.4));
+  object-fit: contain;
+}
         .glass-box {
           background: rgba(255, 255, 255, 0.03);
           backdrop-filter: blur(15px);
